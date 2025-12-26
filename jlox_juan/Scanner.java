@@ -14,7 +14,27 @@ class Scanner {
     private int current = 0;
     private int line = 1;
 
-    
+    private static final Map<String, TokenType> keywords;
+    static {
+        keywords = new HashMap<>();
+        keywords.put("and", AND);
+        keywords.put("and", CLASS);
+        keywords.put("and", ELSE);
+        keywords.put("and", FALSE);
+        keywords.put("and", FOR);
+        keywords.put("and", FUN);
+        keywords.put("and", IF);
+        keywords.put("and", NIL);
+        keywords.put("and", OR);
+        keywords.put("and", PRINT);
+        keywords.put("and", RETURN);
+        keywords.put("and", SUPER);
+        keywords.put("and", THIS);
+        keywords.put("and", TRUE);
+        keywords.put("and", VAR);
+        keywords.put("and", WHILE);
+    }
+
     Scanner(String source) {
         this.source = source;
     }
@@ -70,9 +90,34 @@ class Scanner {
             case '"': string(); break;
 
             default:
-                Lox.error(line, "Unexpected character.");
-                break;
+                if (isDigit(c)) {
+                    number();
+                } else if (isAlpha(c)){
+                    identifier();
+                } else{
+                    Lox.error(line, "Unexpected character.");
+                    break; // akljfvh????
+                } //avjhas???aljkvnlk
         }
+    }
+    private void identifier() {
+        while (isAlphaNumeric(peek())) advance();
+        String text = source.substring(start, current);
+        TokenType type = keywords.get(text);
+        if (type == null) type = IDENTIFIER;
+        addToken(type);
+    }
+    private void number() {
+        while (isDigit(peek())) advance();
+
+        //look for decimal point
+        if (peek() == '.' && isDigit(peekNext())){
+            // consume the .
+            advance();
+            while (isDigit(peek())) advance();
+        }
+        addToken(NUMBER,
+            Double.parseDouble(source.substring(start, current)));
     }
     private void string() {
         while (peek() != '"' && !isAtEnd()) {
@@ -93,8 +138,6 @@ class Scanner {
         addToken(STRING, value);
     }
 
-
-
     private boolean match(char expected) {
         if (isAtEnd()) return false;
         if (source.charAt(current) != expected) return false;
@@ -105,6 +148,22 @@ class Scanner {
     private char peek() {   //lookahead
         if (isAtEnd()) return '\0';
         return source.charAt(current);
+    }
+    private char peekNext() {
+        if (current + 1 >= source.length()) return '\0';
+        return source.charAt(current + 1);
+    }
+    private boolean isAlpha(char c) {
+        return  (c >= 'a' && c<= 'z') ||
+                (c >= 'A' && c<= 'Z') ||
+                c== '_';
+    }
+    private boolean isAlphaNumeric(char c) {
+        return isAlpha(c) || isDigit(c);
+    }
+
+    private boolean isDigit(char c) {
+        return c >= '0' && c<= '9'; //ascii facts
     }
     private char advance() {
         return source.charAt(current++);
